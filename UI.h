@@ -68,7 +68,7 @@ class UI
 		uint32_t ItemDuration; // in ms
 
 		//Track Playing
-		enum Controls{Back, VolM, Stop, PlayPause, VolP, Forw, ControlCount};
+		enum Controls{/*Back,*/ VolM, Stop, PlayPause, VolP, /*Forw,*/ ControlCount};
 		MusicFile *mTrack;
 		uint32_t mTrackTimer;
 		String mTitle;

@@ -211,7 +211,7 @@ void UI::selectItem()
 	{
 		Serial.print("Action : "); Serial.println(mCurrentControl);
 		switch(mCurrentControl)
-		{
+		{	/*
 			case Back:
 				if((mCurrentTime+1000*mTimeOffset) < 11000)
 					break;
@@ -223,7 +223,7 @@ void UI::selectItem()
 
 				mPlayState = true;
 				break;
-
+			 */
 			case Stop:
 				MP3player.stopTrack();
 				mState = Browsing;
@@ -238,6 +238,7 @@ void UI::selectItem()
 				mPlayState = !mPlayState;
 				break;
 
+				/*
 			case Forw:
 				if(!MP3player.skip(10000))
 					mTimeOffset +=10;
@@ -245,7 +246,7 @@ void UI::selectItem()
 					MP3player.resumeMusic();
 
 				mPlayState = true;
-				break;
+				break;*/
 
 			case VolM:
 				mVolume = uint8_t(MP3player.getVolume());
@@ -413,7 +414,7 @@ void UI::drawTrackInfo()
 void UI::drawPlayControls()
 {
 
-	mCurrentControl == Back ? mLCD->drawXBM(2, 48, 16, 16, minusTenS_bits) : mLCD->drawXBM(2, 48, 16, 16, minusTen_bits);
+	//mCurrentControl == Back ? mLCD->drawXBM(2, 48, 16, 16, minusTenS_bits) : mLCD->drawXBM(2, 48, 16, 16, minusTen_bits);
 
 	mCurrentControl == VolM ? mLCD->drawXBM(20, 48, 16, 16, VolMoinsS_bits) : mLCD->drawXBM(20, 48, 16, 16, VolMoins_bits);
 	mCurrentControl == VolP ? mLCD->drawXBM(92, 48, 16, 16, VolPlusS_bits) : mLCD->drawXBM(92, 48, 16, 16, VolPlus_bits);
@@ -439,6 +440,6 @@ void UI::drawPlayControls()
 	else
 		mLCD->drawXBM(48, 48, 16, 16, Stop_bits);
 
-	mCurrentControl == Forw ? mLCD->drawXBM(110, 48, 16, 16, plusTenS_bits) : mLCD->drawXBM(110, 48, 16, 16, plusTen_bits);
+	//mCurrentControl == Forw ? mLCD->drawXBM(110, 48, 16, 16, plusTenS_bits) : mLCD->drawXBM(110, 48, 16, 16, plusTen_bits);
 
 }
