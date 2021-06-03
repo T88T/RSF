@@ -71,7 +71,13 @@ void UI::fillList(Array<MusicFile*, 100> *list)
 
 String UI::timeToString(uint32_t time)
 {
-	return String(time/60/1000) + String(":") + String((float(time)/60.0/1000.0 - (time/60/1000))*60.0, 0);
+	String Minutes = String(time/60/1000);
+	String Secondes = String((float(time)/60.0/1000.0 - (time/60/1000))*60.0, 0);
+
+	if(Secondes[0] == ' ')
+		Secondes[0] = '0';
+
+	return Minutes + String(":") + Secondes;
 }
 
 void UI::nextItem()
@@ -125,7 +131,7 @@ void UI::nextItem()
 
 	if(mState == States::Playing)
 	{
-		mCurrentControl = mCurrentControl == ControlCount ? ControlCount-1 : mCurrentControl +1;
+		mCurrentControl = mCurrentControl == ControlCount-1 ? ControlCount-1 : mCurrentControl +1;
 		mNeedRefresh = true;
 	}
 }
@@ -416,29 +422,29 @@ void UI::drawPlayControls()
 
 	//mCurrentControl == Back ? mLCD->drawXBM(2, 48, 16, 16, minusTenS_bits) : mLCD->drawXBM(2, 48, 16, 16, minusTen_bits);
 
-	mCurrentControl == VolM ? mLCD->drawXBM(20, 48, 16, 16, VolMoinsS_bits) : mLCD->drawXBM(20, 48, 16, 16, VolMoins_bits);
-	mCurrentControl == VolP ? mLCD->drawXBM(92, 48, 16, 16, VolPlusS_bits) : mLCD->drawXBM(92, 48, 16, 16, VolPlus_bits);
+	mCurrentControl == VolM ? mLCD->drawXBM(10, 48, 16, 16, VolMoinsS_bits) : mLCD->drawXBM(10, 48, 16, 16, VolMoins_bits);
+	mCurrentControl == VolP ? mLCD->drawXBM(102, 48, 16, 16, VolPlusS_bits) : mLCD->drawXBM(102, 48, 16, 16, VolPlus_bits);
 
 	if(mPlayState == false)
 	{
 		if(mCurrentControl == PlayPause)
-			mLCD->drawXBM(64, 48, 16, 16, PlayS_bits);
+			mLCD->drawXBM(74, 48, 16, 16, PlayS_bits);
 		else
-			mLCD->drawXBM(64, 48, 16, 16, Play_bits);
+			mLCD->drawXBM(74, 48, 16, 16, Play_bits);
 	}
 
 	else
 	{
 		if(mCurrentControl == PlayPause)
-			mLCD->drawXBM(64, 48, 16, 16, PauseS_bits);
+			mLCD->drawXBM(74, 48, 16, 16, PauseS_bits);
 		else
-			mLCD->drawXBM(64, 48, 16, 16, Pause_bits);
+			mLCD->drawXBM(74, 48, 16, 16, Pause_bits);
 	}
 
 	if(mCurrentControl == Stop)
-		mLCD->drawXBM(48, 48, 32, 16, MenuS_bits);
+		mLCD->drawXBM(38, 48, 32, 16, MenuS_bits);
 	else
-		mLCD->drawXBM(48, 48, 32, 16, Menu_bits);
+		mLCD->drawXBM(38, 48, 32, 16, Menu_bits);
 
 	//mCurrentControl == Forw ? mLCD->drawXBM(110, 48, 16, 16, plusTenS_bits) : mLCD->drawXBM(110, 48, 16, 16, plusTen_bits);
 
