@@ -436,9 +436,9 @@ void UI::drawPlayControls()
 	}
 
 	if(mCurrentControl == Stop)
-		mLCD->drawXBM(48, 48, 16, 16, StopS_bits);
+		mLCD->drawXBM(48, 48, 32, 16, MenuS_bits);
 	else
-		mLCD->drawXBM(48, 48, 16, 16, Stop_bits);
+		mLCD->drawXBM(48, 48, 32, 16, Menu_bits);
 
 	//mCurrentControl == Forw ? mLCD->drawXBM(110, 48, 16, 16, plusTenS_bits) : mLCD->drawXBM(110, 48, 16, 16, plusTen_bits);
 
