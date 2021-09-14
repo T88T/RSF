@@ -11,15 +11,30 @@
 extern vs1053 MP3player;
 extern SdFat SD;
 
+int freeMemory();
+
+char Buffer[60];
+
 MusicFile::MusicFile(String path) : mPath(path)
 {
 	mTitle = "";
-	mExtension = "";
 	mDuration = 0;
-	mBitrate = 0;
 	mFileSize = 0;
 
 	mIsValid = readInfo();
+}
+
+
+MusicFile::MusicFile(File32 *file)
+{
+	mTitle = "";
+	mDuration = 0;
+	mFileSize = 0;
+
+
+	mPath = "";
+
+	mIsValid = readInfo(file);
 }
 
 bool MusicFile::isValid()
@@ -30,11 +45,6 @@ bool MusicFile::isValid()
 String MusicFile::getTitle()
 {
 	return mTitle;
-}
-
-String MusicFile::getExtension()
-{
-	return mExtension;
 }
 
 String MusicFile::getDurationS()
@@ -48,49 +58,56 @@ uint32_t MusicFile::getDuration()
 }
 
 
-bool MusicFile::readInfo()
+bool MusicFile::readInfo(File32 *file)
 {
-	char Buffer[30];
-	mPath.toCharArray(Buffer, 30);
+	File32 *track = nullptr;
 
-	if(!SD.exists(mPath))
+	if(file == nullptr)
+		return false;
+	else
+		track = file;
+
+	track->getName(Buffer, 60);
+	mPath = Buffer;
+
+	if(!SD.exists(Buffer))
 	{
 		Serial.println("File does not exist !");
 		return false;
 	}
 
-	File32 track;
+	mFileSize = track->fileSize();
 
-	track = SD.open(mPath, O_READ);
-
-	mFileSize = track.fileSize();
-
-	if(readTAG(&track, TAG_TITLE, Buffer))
+	if(readTAG(track, TAG_TITLE, Buffer))
 		mTitle = Buffer;
 
-	mBitrate = 320;
+	uint16_t mBitrate = 320;
 	mDuration = ((mFileSize-128)<<3)/mBitrate;
 	mDurationString = String(mDuration/60/1000) + String(":") + String((float(mDuration)/60.0/1000.0 - (mDuration/60/1000))*60.0, 0);
 
-	Serial.println("");
-	Serial.print("Successfully opened "); Serial.println(mPath);
+	Serial.print("\tSuccessfully opened "); Serial.println(mPath);
 	Serial.print("\t Title : "); Serial.println(mTitle);
 
-	if(readTAG(&track, TAG_ARTIST, Buffer))
+	/*
+	if(readTAG(track, TAG_ARTIST, Buffer))
 	{
 		Serial.print("\t Artist : "); Serial.println(Buffer);
 	}
 
-	if(readTAG(&track, TAG_ALBUM, Buffer))
+	if(readTAG(track, TAG_ALBUM, Buffer))
 	{
 		Serial.print("\t Album : "); Serial.println(Buffer);
 	}
+	*/
 
 	Serial.print("\t Bitrate : "); Serial.println(mBitrate);
 	Serial.print("\t Duration (ms) : "); Serial.println(mDuration);
 	Serial.print("\t Duration : "); Serial.println(mDurationString);
 
-	track.close();
+
+	Serial.println(freeMemory());
+
+	track->close();
 
 	return true;
 }
@@ -103,7 +120,7 @@ String MusicFile::getPath()
 
 uint16_t MusicFile::getBitrate()
 {
-	return mBitrate;
+	return 320;
 }
 
 bool MusicFile::readTAG(File32 *track, uint8_t offset, char* infobuffer)
@@ -118,7 +135,7 @@ bool MusicFile::readTAG(File32 *track, uint8_t offset, char* infobuffer)
 		track->read(infobuffer, 30);
 
 		//Delete non alpha numeric characters
-		infobuffer = strip_nonalpha_inplace(infobuffer);
+		//infobuffer = strip_nonalpha_inplace(infobuffer);
 
 		return true;
 	}

@@ -19,12 +19,31 @@
 #define ENC_A		20
 #define ENC_B		21
 
+
+#ifdef __arm__
+// should use uinstd.h to define sbrk but Due causes a conflict
+extern "C" char* sbrk(int incr);
+#else  // __ARM__
+extern char *__brkval;
+#endif  // __arm__
+
+int freeMemory() {
+  char top;
+#ifdef __arm__
+  return &top - reinterpret_cast<char*>(sbrk(0));
+#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+  return &top - __brkval;
+#else  // __arm__
+  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+#endif  // __arm__
+}
+
 U8G2_ST7920_128X64_F_SW_SPI lcd(U8G2_R0, 23, 17, CS_LCD, U8X8_PIN_NONE);
 UI RSF_UI(&lcd);
 Encoder Encoder(ENC_A, ENC_B, BTN_ENC, &RSF_UI);
 SdFat SD;
 vs1053 MP3player;
-Array<MusicFile*, 100> Playlist;
+Array<MusicFile*, 50> Playlist;
 
 void rotaryEncoderChange();
 
@@ -40,11 +59,18 @@ void setup()
 	lcd.begin();
 	lcd.setFont(u8g2_font_4x6_tf);
 	lcd.clearBuffer();
-	lcd.drawXBM(28, 0, 69, 64, RSF_bits);
+	lcd.drawXBMP(28, 0, 69, 64, RSF_bits);
 	lcd.sendBuffer();
 
-	if(!SD.begin(SD_SEL, SPI_HALF_SPEED))
+	if(!SD.begin(SD_SEL, SPI_FULL_SPEED))
+	{
+		lcd.clearBuffer();
+		lcd.drawXBMP(28, 0, 69, 64, RSF_bits);
+		lcd.setCursor(10, 59);
+		lcd.print("Erreur de carte SD...");
+		lcd.sendBuffer();
 		SD.initErrorHalt();
+	}
 
 	if(!SD.chdir("/"))
 		SD.errorHalt("sd.chdir");
@@ -66,23 +92,27 @@ void setup()
 	if (!root.open("/"))
 		Serial.println("Unable to open root");
 
-	root.rewind();
-	root.rewindDirectory();
+	//root.rewind();
+	//root.rewindDirectory();
+
+	char fileName[60] = {0};
 
 	while(file.openNext(&root, O_RDONLY))
 	{
-		char fileName[60] = {0};
+		for(uint8_t i; i < 60; i++)
+			fileName[i] = 0;
+
 		file.getName(fileName, 60);
-		Serial.print("\t"); Serial.println(fileName);
+		/*Serial.print("\t");*/ Serial.println(fileName);
 
 		if(String(fileName).indexOf(".mp3") != -1 && !file.isDir())
 		{
-			MusicFile* track = new MusicFile(String(fileName));
+			MusicFile* track = new MusicFile(&file);
 			if(track->isValid())
 			{
 				Playlist.push_back(track);
 				lcd.clearBuffer();
-				lcd.drawXBM(28, 0, 69, 64, RSF_bits);
+				lcd.drawXBMP(28, 0, 69, 64, RSF_bits);
 				lcd.setCursor(10, 59);
 				lcd.print("Fichiers : " + String(Playlist.size()));
 				lcd.sendBuffer();
@@ -93,7 +123,6 @@ void setup()
 	}
 
 	Serial.print("Found files: "); Serial.println(Playlist.size());
-
 	RSF_UI.fillList(&Playlist);
 
 	lcd.setFont(u8g2_font_helvR08_tf);
@@ -101,6 +130,8 @@ void setup()
 	attachInterrupt(digitalPinToInterrupt(ENC_A), rotaryEncoderChange, CHANGE);
 	attachInterrupt(digitalPinToInterrupt(ENC_B), rotaryEncoderChange, CHANGE);
 	attachInterrupt(digitalPinToInterrupt(BTN_ENC), rotaryEncoderChange, CHANGE);
+
+	Serial.print("Free memory : "); Serial.println(freeMemory());
 
 	previousTime = millis();
 }

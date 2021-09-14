@@ -11,7 +11,7 @@
 #include "vs1053_SdFat.h"
 
 extern vs1053 MP3player;
-extern Array<MusicFile*, 100> Playlist;
+extern Array<MusicFile*, 50> Playlist;
 
 #define UPDATE_TIMER uint16_t(500)
 #define VSCROLL_SPEED uint16_t(400)
@@ -47,7 +47,6 @@ UI::UI(U8G2_ST7920_128X64_F_SW_SPI *LCD) : mLCD(LCD)
 	mTimeOffset = 0;
 	mVolume = 192;
 
-	mPages = 0;
 
 	mTrack = nullptr;
 
@@ -58,15 +57,10 @@ void UI::requestAction(uint8_t Action)
 	mPendingAction = Action;
 }
 
-void UI::fillList(Array<MusicFile*, 100> *list)
+void UI::fillList(Array<MusicFile*, 50> *list)
 {
-	mList.clear();
-	for(uint8_t i = 0; i < list->size(); i++)
-	{
-		mList.push_back(list->at(i)->getTitle());
-	}
-
-	mPages = mList.size() / UI_ITEM_PER_PAGE;
+	mList = list;
+	mPages = 1+ list->size() / UI_ITEM_PER_PAGE;
 }
 
 String UI::timeToString(uint32_t time)
@@ -86,7 +80,7 @@ void UI::nextItem()
 	{
 		if(mCurrentItem+1 < UI_ITEM_PER_PAGE)
 		{
-			if(uint8_t(mCurrentItem+1 + mCurrentPage*UI_ITEM_PER_PAGE) < mList.size())
+			if(uint8_t(mCurrentItem+1 + mCurrentPage*UI_ITEM_PER_PAGE) < mList->size())
 			{
 				mCurrentItem++;
 				mNeedRefresh = true;
@@ -126,7 +120,7 @@ void UI::nextItem()
 			}
 		}
 
-		Serial.print("Item : "); Serial.print(mCurrentItem); Serial.print(" Page : "); Serial.println(mCurrentPage);
+		Serial.print("Item : "); Serial.print(mCurrentItem); Serial.print(" Page : "); Serial.print(mCurrentPage+1); Serial.print("/"); Serial.println(mPages);
 	}
 
 	if(mState == States::Playing)
@@ -360,7 +354,7 @@ void UI::drawList()
 
 		uint8_t SelectedItem = mCurrentItem+mCurrentPage*UI_ITEM_PER_PAGE;
 
-		if(j < mList.size())
+		if(j < mList->size())
 		{
 
 			if(mNeedVScrolling && SelectedItem == j)
@@ -371,11 +365,11 @@ void UI::drawList()
 					mScrollTempo = 2;
 				}
 
-				mLCD->print(mList.at(j).substring(mCurrentVScroll));
+				mLCD->print(mList->at(j)->getTitle().substring(mCurrentVScroll));
 			}
 
 			else
-				mLCD->print(mList.at(j));
+				mLCD->print(mList->at(j)->getTitle());
 		}
 	}
 
@@ -420,32 +414,32 @@ void UI::drawTrackInfo()
 void UI::drawPlayControls()
 {
 
-	//mCurrentControl == Back ? mLCD->drawXBM(2, 48, 16, 16, minusTenS_bits) : mLCD->drawXBM(2, 48, 16, 16, minusTen_bits);
+	//mCurrentControl == Back ? mLCD->drawXBMPP(2, 48, 16, 16, minusTenS_bits) : mLCD->drawXBMPP(2, 48, 16, 16, minusTen_bits);
 
-	mCurrentControl == VolM ? mLCD->drawXBM(10, 48, 16, 16, VolMoinsS_bits) : mLCD->drawXBM(10, 48, 16, 16, VolMoins_bits);
-	mCurrentControl == VolP ? mLCD->drawXBM(102, 48, 16, 16, VolPlusS_bits) : mLCD->drawXBM(102, 48, 16, 16, VolPlus_bits);
+	mCurrentControl == VolM ? mLCD->drawXBMP(10, 48, 16, 16, VolMoinsS_bits) : mLCD->drawXBMP(10, 48, 16, 16, VolMoins_bits);
+	mCurrentControl == VolP ? mLCD->drawXBMP(102, 48, 16, 16, VolPlusS_bits) : mLCD->drawXBMP(102, 48, 16, 16, VolPlus_bits);
 
 	if(mPlayState == false)
 	{
 		if(mCurrentControl == PlayPause)
-			mLCD->drawXBM(74, 48, 16, 16, PlayS_bits);
+			mLCD->drawXBMP(74, 48, 16, 16, PlayS_bits);
 		else
-			mLCD->drawXBM(74, 48, 16, 16, Play_bits);
+			mLCD->drawXBMP(74, 48, 16, 16, Play_bits);
 	}
 
 	else
 	{
 		if(mCurrentControl == PlayPause)
-			mLCD->drawXBM(74, 48, 16, 16, PauseS_bits);
+			mLCD->drawXBMP(74, 48, 16, 16, PauseS_bits);
 		else
-			mLCD->drawXBM(74, 48, 16, 16, Pause_bits);
+			mLCD->drawXBMP(74, 48, 16, 16, Pause_bits);
 	}
 
 	if(mCurrentControl == Stop)
-		mLCD->drawXBM(38, 48, 32, 16, MenuS_bits);
+		mLCD->drawXBMP(38, 48, 32, 16, MenuS_bits);
 	else
-		mLCD->drawXBM(38, 48, 32, 16, Menu_bits);
+		mLCD->drawXBMP(38, 48, 32, 16, Menu_bits);
 
-	//mCurrentControl == Forw ? mLCD->drawXBM(110, 48, 16, 16, plusTenS_bits) : mLCD->drawXBM(110, 48, 16, 16, plusTen_bits);
+	//mCurrentControl == Forw ? mLCD->drawXBMP(110, 48, 16, 16, plusTenS_bits) : mLCD->drawXBMP(110, 48, 16, 16, plusTen_bits);
 
 }
